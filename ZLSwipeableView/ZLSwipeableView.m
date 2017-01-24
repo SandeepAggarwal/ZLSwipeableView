@@ -15,7 +15,7 @@
 #import "DefaultDirectionInterpretor.h"
 #import "DefaultShouldSwipeDeterminator.h"
 
-@interface ZLSwipeableView ()
+@interface ZLSwipeableView ()<UIDynamicAnimatorDelegate>
 
 @property (nonatomic) NSMutableArray<UIView *> *mutableHistory;
 
@@ -32,6 +32,9 @@
 @end
 
 @implementation ZLSwipeableView
+{
+    BOOL waitingForLoadViews;
+}
 
 #pragma mark - Init
 
@@ -184,6 +187,16 @@
     [self swipeView:topView location:point directionVector:directionVector];
 }
 
+#pragma mark - UIDynamicAnimatorDelegate
+-(void)dynamicAnimatorDidPause:(UIDynamicAnimator *)animator
+{
+    if (waitingForLoadViews == YES)
+    {
+        [self loadViewsIfNeeded];
+        waitingForLoadViews = NO;
+    }
+}
+
 #pragma mark - Private APIs
 
 - (NSArray<UIView *> *)allViews {
@@ -214,7 +227,8 @@
                                                            index:index
                                                miscContainerView:self.miscContainerView
                                                         animator:self.animator
-                                                   swipeableView:self];
+                                                   swipeableView:self
+                                animatorDelegate:self];
     [self setManagerForView:view viewManager:viewManager];
 }
 
@@ -261,7 +275,8 @@
   directionVector:(CGVector)directionVector {
 
     [[self managerForView:view] setStateSwiping:location direction:directionVector];
-
+    waitingForLoadViews = YES;
+    
     ZLSwipeableViewDirection direction = ZLSwipeableViewDirectionFromVector(directionVector);
 
     NSPredicate *outOfBoundViews =
@@ -275,7 +290,6 @@
         [_delegate respondsToSelector:@selector(swipeableView:didSwipeView:inDirection:)]) {
         [_delegate swipeableView:self didSwipeView:view inDirection:direction];
     }
-    [self loadViewsIfNeeded];
 }
 
 - (void)scheduleToBeRemoved:(UIView *)view withPredicate:(NSPredicate *)predicate {

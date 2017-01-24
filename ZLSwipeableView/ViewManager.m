@@ -37,7 +37,8 @@ static const CGFloat kAnchorViewWidth = 1000;
                        index:(NSUInteger)index
            miscContainerView:(UIView *)miscContainerView
                     animator:(UIDynamicAnimator *)animator
-               swipeableView:(ZLSwipeableView *)swipeableView {
+               swipeableView:(ZLSwipeableView *)swipeableView
+            animatorDelegate:(id)animatorDelegate{
     self = [super init];
     if (self) {
         self.view = view;
@@ -45,7 +46,8 @@ static const CGFloat kAnchorViewWidth = 1000;
         self.miscContainerView = miscContainerView;
         self.animator = animator;
         self.swipeableView = swipeableView;
-
+        self.animator.delegate = animatorDelegate;
+        
         [view addGestureRecognizer:
                   [[PanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)]];
         _anchorView =
