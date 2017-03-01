@@ -115,6 +115,13 @@
         UIView *nextView = [self nextView];
         if (nextView) {
             [self insert:nextView atIndex:0];
+            
+            if (i == self.numberOfActiveViews -1 ) {
+                if (_delegate &&
+                    [_delegate respondsToSelector:@selector(swipeableView:presentedView:)]) {
+                    [_delegate swipeableView:self presentedView:[self topView]];
+                }
+            }
         }
     }
     [self updateViews];

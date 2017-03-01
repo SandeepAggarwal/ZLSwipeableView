@@ -58,6 +58,9 @@ typedef NS_ENUM(NSUInteger, ZLSwipeableViewDirection) {
 /// Delegate
 @protocol ZLSwipeableViewDelegate <NSObject>
 @optional
+
+- (void)swipeableView:(ZLSwipeableView *)swipeableView presentedView:(UIView*)view;
+
 - (void)swipeableView:(ZLSwipeableView *)swipeableView
          didSwipeView:(UIView *)view
           inDirection:(ZLSwipeableViewDirection)direction;
