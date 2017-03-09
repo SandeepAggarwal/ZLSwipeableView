@@ -15,7 +15,7 @@
 #import "DefaultDirectionInterpretor.h"
 #import "DefaultShouldSwipeDeterminator.h"
 
-@interface ZLSwipeableView ()<UIDynamicAnimatorDelegate>
+@interface ZLSwipeableView ()<ViewManagerDelegate>
 
 @property (nonatomic) NSMutableArray<UIView *> *mutableHistory;
 
@@ -27,13 +27,13 @@
 
 @property (strong, nonatomic) NSMutableDictionary<NSValue *, ViewManager *> *viewManagers;
 
-@property (strong, nonatomic) Scheduler *scheduler;
+@property (strong, nonatomic) NSMutableArray *removableViews;
 
 @end
 
 @implementation ZLSwipeableView
 {
-    BOOL waitingForLoadViews;
+    BOOL waitingForAddingView;
 }
 
 #pragma mark - Init
@@ -72,12 +72,14 @@
     self.animator = [[UIDynamicAnimator alloc] initWithReferenceView:self];
 
     self.viewManagers = [NSMutableDictionary dictionary];
-
-    self.scheduler = [[Scheduler alloc] init];
-
+    
+    self.removableViews = [NSMutableArray new];
+    
     self.viewAnimator = [[DefaultViewAnimator alloc] init];
     self.swipingDeterminator = [[DefaultShouldSwipeDeterminator alloc] init];
     self.directionInterpretor = [[DefaultDirectionInterpretor alloc] init];
+    
+    waitingForAddingView = YES;
 }
 
 - (void)layoutSubviews {
@@ -115,13 +117,6 @@
         UIView *nextView = [self nextView];
         if (nextView) {
             [self insert:nextView atIndex:0];
-            
-            if (i == self.numberOfActiveViews -1 ) {
-                if (_delegate &&
-                    [_delegate respondsToSelector:@selector(swipeableView:presentedView:)]) {
-                    [_delegate swipeableView:self presentedView:[self topView]];
-                }
-            }
         }
     }
     [self updateViews];
@@ -194,14 +189,16 @@
     [self swipeView:topView location:point directionVector:directionVector];
 }
 
-#pragma mark - UIDynamicAnimatorDelegate
--(void)dynamicAnimatorDidPause:(UIDynamicAnimator *)animator
+#pragma mark - ViewManagerDelegate
+
+-(void)viewManager:(ViewManager *)viewManager viewGoneOutOfScreen:(UIView *)view
 {
-    if (waitingForLoadViews == YES)
+    for (UIView* view in self.removableViews)
     {
-        [self loadViewsIfNeeded];
-        waitingForLoadViews = NO;
+        [self remove:view];
     }
+    [self.removableViews removeAllObjects];
+    [self loadViewsIfNeeded];
 }
 
 #pragma mark - Private APIs
@@ -235,8 +232,13 @@
                                                miscContainerView:self.miscContainerView
                                                         animator:self.animator
                                                    swipeableView:self
-                                animatorDelegate:self];
+                                delegate:self];
     [self setManagerForView:view viewManager:viewManager];
+    if (waitingForAddingView == YES)
+    {
+        [self viewPresentedIfAny];
+        waitingForAddingView = NO;
+    }
 }
 
 - (void)remove:(UIView *)view {
@@ -282,7 +284,6 @@
   directionVector:(CGVector)directionVector {
 
     [[self managerForView:view] setStateSwiping:location direction:directionVector];
-    waitingForLoadViews = YES;
     
     ZLSwipeableViewDirection direction = ZLSwipeableViewDirectionFromVector(directionVector);
 
@@ -297,6 +298,8 @@
         [_delegate respondsToSelector:@selector(swipeableView:didSwipeView:inDirection:)]) {
         [_delegate swipeableView:self didSwipeView:view inDirection:direction];
     }
+    
+    [self viewPresentedIfAny];
 }
 
 - (void)scheduleToBeRemoved:(UIView *)view withPredicate:(NSPredicate *)predicate {
@@ -308,16 +311,28 @@
     if (_mutableHistory.count > _numberOfHistoryItem) {
         [_mutableHistory removeObjectAtIndex:0];
     }
+    
+    [self.removableViews addObject:view];
+}
 
-    [_scheduler scheduleActionRepeatedly:^{
-      NSArray *matchedViews = [[self inactiveViews] filteredArrayUsingPredicate:predicate];
-      for (UIView *view in matchedViews) {
-          [self remove:view];
-      }
-    } interval:0.3
-        endCondition:^BOOL {
-          return [self activeViews].count == [self allViews].count;
-        }];
+- (void)viewPresentedIfAny
+{
+    if (_delegate &&
+        [_delegate respondsToSelector:@selector(swipeableView:presentedView:)])
+    {
+        NSMutableArray* nonRemovableViews = [NSMutableArray arrayWithArray:self.containerView.subviews];
+        [nonRemovableViews removeObjectsInArray:self.removableViews];
+        
+        if (nonRemovableViews.count > 0 )
+        {
+            [_delegate swipeableView:self presentedView:[nonRemovableViews firstObject]];
+        }
+        else
+        {
+            [_delegate swipeableView:self presentedView:nil];
+            waitingForAddingView = YES;
+        }
+    }
 }
 
 #pragma mark - ()

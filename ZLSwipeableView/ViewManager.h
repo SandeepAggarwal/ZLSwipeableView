@@ -14,6 +14,12 @@ typedef NS_ENUM(NSUInteger, ViewManagerState) {
     ViewManagerStateSwiping = (1 << 1),
 };
 
+@class ViewManager;
+
+@protocol ViewManagerDelegate <NSObject>
+- (void)viewManager:(ViewManager*)viewManager viewGoneOutOfScreen:(UIView*)view;
+@end
+
 @class ZLSwipeableView;
 
 @interface ViewManager : NSObject
@@ -30,7 +36,7 @@ typedef NS_ENUM(NSUInteger, ViewManagerState) {
            miscContainerView:(UIView *)miscContainerView
                     animator:(UIDynamicAnimator *)animator
                swipeableView:(ZLSwipeableView *)swipeableView
-            animatorDelegate:(id)animatorDelegate;
+                    delegate:(id<ViewManagerDelegate>)delegate;
 
 - (void)setStateSnapping:(CGPoint)point;
 

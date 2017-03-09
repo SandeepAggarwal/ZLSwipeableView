@@ -28,6 +28,7 @@ static const CGFloat kAnchorViewWidth = 1000;
 @property (strong, nonatomic) UIAttachmentBehavior *anchorViewToPointAttachmentBehavior;
 @property (strong, nonatomic) UIPushBehavior *pushBehavior;
 
+@property (weak) id<ViewManagerDelegate> delegate;
 @end
 
 @implementation ViewManager
@@ -38,7 +39,7 @@ static const CGFloat kAnchorViewWidth = 1000;
            miscContainerView:(UIView *)miscContainerView
                     animator:(UIDynamicAnimator *)animator
                swipeableView:(ZLSwipeableView *)swipeableView
-            animatorDelegate:(id)animatorDelegate{
+                    delegate:(id<ViewManagerDelegate>)delegate{
     self = [super init];
     if (self) {
         self.view = view;
@@ -46,7 +47,7 @@ static const CGFloat kAnchorViewWidth = 1000;
         self.miscContainerView = miscContainerView;
         self.animator = animator;
         self.swipeableView = swipeableView;
-        self.animator.delegate = animatorDelegate;
+        self.delegate = delegate;
         
         [view addGestureRecognizer:
                   [[PanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)]];
@@ -239,7 +240,24 @@ static const CGFloat kAnchorViewWidth = 1000;
     _pushBehavior = [[UIPushBehavior alloc] initWithItems:@[ _anchorView ]
                                                      mode:UIPushBehaviorModeInstantaneous];
     _pushBehavior.pushDirection = direction;
+   
+    __weak typeof (self) weakSelf = self;
+    _pushBehavior.action = ^
+    {
+        if (!CGRectIntersectsRect(CGRectInset([UIScreen mainScreen].bounds, -([UIScreen mainScreen].bounds.size.width), -([UIScreen mainScreen].bounds.size.width)),weakSelf.view.frame))
+        {
+            if (weakSelf.delegate && [weakSelf.delegate respondsToSelector:@selector(viewManager:viewGoneOutOfScreen:)])
+            {
+                [weakSelf.delegate viewManager:weakSelf viewGoneOutOfScreen:weakSelf.view];
+            }
+            weakSelf.pushBehavior.action = nil;
+        }
+    };
     [self addBehavior:_pushBehavior];
+    
+    //so that after pushing it doesn't regain back to first state
+    self.anchorView.userInteractionEnabled = NO;
+    self.view.userInteractionEnabled = NO;
 }
 
 - (void)unpushView {
