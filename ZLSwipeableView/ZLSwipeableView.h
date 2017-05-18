@@ -114,6 +114,7 @@ typedef NS_ENUM(NSUInteger, ZLSwipeableViewDirection) {
 @property (nonatomic) CGFloat minTranslationInPercent;
 @property (nonatomic) CGFloat minVelocityInPointPerSecond;
 @property (nonatomic) ZLSwipeableViewDirection allowedDirection;
+@property (nonatomic, assign) BOOL allowInteraction;
 
 - (UIView *)topView;
 

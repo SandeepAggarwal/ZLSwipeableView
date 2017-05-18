@@ -90,6 +90,12 @@ static const CGFloat kAnchorViewWidth = 1000;
     if (!_swipeableView) {
         return;
     }
+    
+    if (_swipeableView.allowInteraction == NO)
+    {
+        return;
+    }
+    
     CGPoint translation = [recognizer translationInView:_containerView];
     CGPoint location = [recognizer locationInView:_containerView];
     CGPoint velocity = [recognizer velocityInView:_containerView];

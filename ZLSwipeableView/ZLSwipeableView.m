@@ -55,6 +55,7 @@
 }
 
 - (void)setup {
+    self.allowInteraction = YES;
     self.numberOfActiveViews = 4;
     self.mutableHistory = [NSMutableArray array];
     self.numberOfHistoryItem = 10;
