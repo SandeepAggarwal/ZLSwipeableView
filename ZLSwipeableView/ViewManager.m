@@ -56,6 +56,16 @@ static const CGFloat kAnchorViewWidth = 1000;
         _anchorView.hidden = NO;
         [miscContainerView addSubview:_anchorView];
         [containerView insertSubview:view atIndex:index];
+        
+        [view setTranslatesAutoresizingMaskIntoConstraints:NO];
+        [containerView addConstraint:[NSLayoutConstraint constraintWithItem:view attribute:(NSLayoutAttributeLeading) relatedBy:(NSLayoutRelationEqual) toItem:containerView attribute:(NSLayoutAttributeLeading) multiplier:1.0 constant:0]];
+        
+        [containerView addConstraint:[NSLayoutConstraint constraintWithItem:view attribute:(NSLayoutAttributeTrailing) relatedBy:(NSLayoutRelationEqual) toItem:containerView attribute:(NSLayoutAttributeTrailing) multiplier:1.0 constant:0]];
+        
+        [containerView addConstraint:[NSLayoutConstraint constraintWithItem:view attribute:(NSLayoutAttributeTop) relatedBy:(NSLayoutRelationEqual) toItem:containerView attribute:(NSLayoutAttributeTop) multiplier:1.0 constant:0]];
+        
+        [containerView addConstraint:[NSLayoutConstraint constraintWithItem:view attribute:(NSLayoutAttributeBottom) relatedBy:(NSLayoutRelationEqual) toItem:containerView attribute:(NSLayoutAttributeBottom) multiplier:1.0 constant:0]];
+        
     }
     return self;
 }
