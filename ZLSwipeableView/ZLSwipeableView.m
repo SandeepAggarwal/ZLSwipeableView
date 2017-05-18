@@ -276,7 +276,7 @@
         if (shouldBeHidden) {
             continue;
         }
-        [self.viewAnimator animateView:view index:i views:activeViews swipeableView:self];
+       // [self.viewAnimator animateView:view index:i views:activeViews swipeableView:self];
     }
 }
 
