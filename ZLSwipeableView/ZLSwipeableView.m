@@ -268,7 +268,7 @@
         }
     }
 
-    for (NSUInteger i = 0; i < activeViews.count; i++) {
+    for (NSInteger i = activeViews.count - 1; i >= 0; i--) {
         UIView *view = activeViews[i];
         view.userInteractionEnabled = true;
         BOOL shouldBeHidden = i >= self.numberOfActiveViews;
@@ -276,7 +276,7 @@
         if (shouldBeHidden) {
             continue;
         }
-       // [self.viewAnimator animateView:view index:i views:activeViews swipeableView:self];
+        [self.viewAnimator animateView:view index:i views:activeViews swipeableView:self];
     }
 }
 
@@ -299,7 +299,7 @@
         [_delegate respondsToSelector:@selector(swipeableView:didSwipeView:inDirection:)]) {
         [_delegate swipeableView:self didSwipeView:view inDirection:direction];
     }
-    
+    [self updateViews];
     [self viewPresentedIfAny];
 }
 
